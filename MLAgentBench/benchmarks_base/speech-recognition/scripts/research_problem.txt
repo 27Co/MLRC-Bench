@@ -1,0 +1,29 @@
+The LibriBrain competition challenges participants to detect speech activity (speech vs. silence) from non-invasive magnetoencephalography (MEG) signals.
+
+## Description
+The primary goal of this competition is to decode continuous MEG recordings into binary labels distinguishing between "speech" and "silence" states while participants listen to natural audiobook stories.
+
+* **Data**: The dataset (LibriBrain) consists of MEG recordings from subjects listening to audiobooks. The data is typically provided as 203-channel gradiometer recordings, downsampled to 250 Hz. The task focuses on "Track 1," which requires generalizing to held-out data.
+* **Evaluation**: Submissions are evaluated using the Macro F1-score ($F1_{macro}$) to balance performance across both speech and silence classes.
+
+## Developing New Methods
+You have been provided with a starter kit that includes an end-to-end submission flow for developing new methods. See `methods/MyMethod.py` for an example implementation of a baseline method.
+
+**Baseline Method**: The official baseline formulates the task as a frame-wise binary classification problem[cite: 16, 143]. It processes MEG segments to predict the probability of speech for each time point independently.
+
+1. To add a new method, modify the `__init__()` and `run()` functions in `methods/BaseMethod.py` and save it as a new file in `methods/`.
+
+2. Add the new method to the dictionary returned by `all_method_handlers()` in `methods/__init__.py`. 
+
+3. Add the new module to `methods/__init__.py`.
+
+## Test Method
+
+Simply run `python main.py -m {method_name}`. For example, to test the baseline method, execute `python main.py -m my_method`.
+
+The development pipeline will train your model on the provided training sessions and evaluate it against local validation sets (e.g., specific hold-out sessions) to report the $F1_{macro}$ score.
+
+## Competition Rules
+
+Focus on the development of novel methods and algorithms that offer meaningful insights. Do NOT propose something trivial like prompt engineering.
+

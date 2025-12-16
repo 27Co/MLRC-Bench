@@ -1,0 +1,48 @@
+Decoding speech from non-invasive magnetoencephalography (MEG) signals is a complex task requiring the extraction of linguistic features from noisy neural data. The LibriBrain competition focuses on the specific challenge of detecting speech activity (speech vs. silence) from continuous MEG recordings. While baseline approaches often treat this as a frame-wise binary classification problem, recent advanced methods employ continuous probabilistic modeling or leverage external large-scale audio databases to bypass direct noisy reconstruction.
+
+This background document details two distinct, high-performing approaches: (1) a multi-scale neural decoder that integrates short- and long-term temporal contexts for robust probabilistic decoding, and (2) a retrieval-based framework that aligns MEG signals with public audio libraries to infer speech labels indirectly.
+
+---
+
+### MEBM-Speech: Multi-scale Enhanced BrainMagic
+
+MEBM-Speech proposes a continuous probabilistic decoding strategy rather than independent binary classification. [cite_start]The model predicts a time-varying probability sequence \( P \in [0,1]^{1 \times T} \) representing the likelihood of speech activity, which aligns better with the smooth transitions of neural states[cite: 581, 588].
+
+#### Architecture
+The model extends the BrainMagic backbone by introducing three parallel temporal branches to capture multi-scale features:
+1.  [cite_start]**Multi-scale Convolutional Module**: Extracts fine-grained, short-term patterns using multiple receptive fields[cite: 567].
+2.  [cite_start]**BrainMagic Encoders**: Captures mid-term contextual dependencies[cite: 600].
+3.  [cite_start]**Bidirectional LSTM (BiLSTM)**: Models long-range temporal dependencies across the sequence[cite: 567].
+
+[cite_start]These branches are fused using a depthwise separable convolutional layer to reduce redundancy, followed by average pooling for boundary stability[cite: 567, 606].
+
+#### Training and Inference
+[cite_start]The model operates on gradient channels only (downsampled to 100 Hz) to reduce computational cost[cite: 584]. [cite_start]To handle the ambiguity of onset boundaries in MEG signals, a temporal jittering strategy is applied during training, shifting phoneme onsets randomly by \(\pm 20\) ms[cite: 593].
+
+The optimization objective is the Mean Squared Error (MSE) between the predicted probability sequence and the ground-truth binary labels:
+\[ \mathcal{L} = \text{MSE}(P_{\text{pred}}, Y_{\text{true}}) \]
+[cite_start]Final binary predictions are generated via adaptive thresholding, where the threshold is dynamically selected to maximize the F1-score on a validation set[cite: 591, 597].
+
+---
+
+### Retrieval-Based Decoding (Sherlock Holmes)
+
+This approach bypasses the difficulty of reconstructing speech features directly from low-SNR MEG data. [cite_start]Instead, it frames the problem as a "match-mismatch" task: identifying the source audio segment from a large external library (LibriVox) and then detecting speech on the clean audio[cite: 877, 878].
+
+#### Step 1: MEG-Speech Contrastive Alignment
+The core mechanism is a contrastive learning framework that aligns MEG segments with their corresponding speech audio representations.
+* [cite_start]**MEG Encoder**: A CNN-based network (ConvConcatNet) extracts neural features \( Z \in \mathbb{R}^{H \times T} \)[cite: 901].
+* [cite_start]**Audio Encoder**: A pretrained Wav2vec 2.0 model extracts speech representations \( F \in \mathbb{R}^{H \times T} \)[cite: 902].
+
+The model minimizes the InfoNCE loss to maximize the similarity between matched pairs \((Z^i, F^i)\) while minimizing it for mismatched pairs:
+\[ \mathcal{L}_{\text{InfoNCE}} = -\frac{1}{N} \sum_{i=1}^{N} \log \frac{\exp(\text{sim}(Z^i, F^i) / \tau)}{\sum_{j=1}^{N} \exp(\text{sim}(Z^i, F^j) / \tau)} \]
+[cite_start]where \( \text{sim}(u, v) \) is the average Pearson correlation across feature dimensions[cite: 905, 906].
+
+#### Step 2: Audio-Based Speech Detection
+[cite_start]Once the matching audio segment is retrieved (validated by checking for a "Longest Ascending Subsequence" of matches to ensure temporal consistency), a secondary model detects speech directly from the clean audio[cite: 938, 939]. [cite_start]This model uses a deep CNN on mel-spectrogram inputs and is trained to maximize the Pearson correlation with the binary speech/silence labels[cite: 908, 909].
+
+---
+
+#### References
+[1] Anonymous. (2025). MEBM-Speech: Multi-scale Enhanced BrainMagic for Robust MEG Speech Detection. *LibriBrain Competition*. https://neural-processing-lab.github.io/2025-libribrain-competition/workshop-papers/I_love_silksong/libribrain-ilovesilksong-speech-2025.pdf
+[2] Anonymous. (2025). Bypassing Direct Reconstruction: Speech Detection from MEG via Large-Scale Audio Retrieval. *LibriBrain Competition*. https://neural-processing-lab.github.io/2025-libribrain-competition/workshop-papers/Sherlock%20Holmes/libribrain-sherlockholmes-2025.pdf

@@ -1,0 +1,14 @@
+name: speech-recognition
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python
+  - pytorch
+  - scikit-learn
+  - pip
+  - pip:
+      - lightning
+      - torchmetrics
+      - pnpl
+
