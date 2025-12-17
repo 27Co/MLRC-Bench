@@ -1,7 +1,5 @@
 # speech-recognition competition
 
-with `MLAgentBench` set up, uncomment corresponding lines in env/main.py to get save evaluation statistics
-
 ## Usage
 
 ```sh
@@ -21,3 +19,9 @@ python main.py -m my_method -p dev
 cp -r ../scripts/test_data/* data/
 python main.py -m my_method -p test
 ```
+
+## Notes
+
+- runtime evaluations with `MLAgentBench` set up is currently commented out, uncomment if running with `MLAgentBench` set up
+- in baseline training, `max_epochs` is currently set to 2 for quick testing, change it back to 15 for full training
+
